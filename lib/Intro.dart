@@ -4,7 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intro_views_flutter/intro_views_flutter.dart';
 
 import 'Constants/constants.dart';
-import 'activity_login.dart';
+import 'local/activity_login.dart';
 import 'main.dart';
 
 class Intro extends StatelessWidget {

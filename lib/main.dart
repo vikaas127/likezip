@@ -1,9 +1,31 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:intro_views_flutter/intro_views_flutter.dart';
-import 'package:ziplike/splash_screen.dart';
+import 'local/splash_screen.dart';
 
 /// This is the main method of app, from here execution starts.
-void main() => runApp(App());
+void main() async
+{  WidgetsFlutterBinding.ensureInitialized();
+Firebase.initializeApp();
+  runApp(MaterialApp(
+      theme: ThemeData(
+        // Define the default brightness and colors.
+        brightness: Brightness.dark,
+        primaryColor: Color(0xFF272A36),
+        accentColor: Colors.cyan[600],
+
+        // Define the default font family.
+        fontFamily: 'Georgia',
+
+        // Define the default TextTheme. Use this to specify the default
+        // text styling for headlines, titles, bodies of text, and more.
+        textTheme: const TextTheme(
+          headline1: TextStyle(fontSize: 72.0, fontWeight: FontWeight.bold),
+          headline6: TextStyle(fontSize: 36.0, fontStyle: FontStyle.italic),
+          bodyText2: TextStyle(fontSize: 14.0, fontFamily: 'Hind'),
+        ),
+      ),
+      home:App()));}
 
 /// App widget class.
 class App extends StatelessWidget {

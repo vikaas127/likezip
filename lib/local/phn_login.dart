@@ -2,7 +2,8 @@ import 'package:country_picker/country_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-import 'Constants/constants.dart';
+import '../Constants/constants.dart';
+import 'otp_screen.dart';
 class phn_login extends StatefulWidget{
   @override
   State<StatefulWidget> createState() {
@@ -88,7 +89,10 @@ TextEditingController _phncontroller = new TextEditingController();
            ),
          Padding(
            padding: const EdgeInsets.all(8.0),
-           child: FlatButton(onPressed: null, child: Container(color: Colors.grey,
+           child: FlatButton(onPressed:() {
+             Navigator.of(context).push(MaterialPageRoute(
+                 builder: (context) => OTPScreen(_phncontroller.text)));
+           }, child: Container(color: Colors.grey,
                width:MediaQuery.of(context).size.width ,
                child: Padding(
                  padding: const EdgeInsets.all(10.0),

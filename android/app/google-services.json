@@ -1,0 +1,139 @@
+{
+  "project_info": {
+    "project_number": "804901647633",
+    "firebase_url": "https://likezap-circle-cf438.firebaseio.com",
+    "project_id": "likezap-circle-cf438",
+    "storage_bucket": "likezap-circle-cf438.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:804901647633:android:dbd2ab3147a9788849c8b0",
+        "android_client_info": {
+          "package_name": "com.likezap"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "804901647633-043jq76prmt2ldstrtj44218rupodquh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.likezap",
+            "certificate_hash": "80149094731e985fa659d8c6adde310635d1e4e8"
+          }
+        },
+        {
+          "client_id": "804901647633-1k0gd43av0vl4f9rfjigfor90d0nqk0o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.likezap",
+            "certificate_hash": "402031f72d109918abfd8e47964c08dce5b9095d"
+          }
+        },
+        {
+          "client_id": "804901647633-5ipjs8v6ibrmcpi1236o7hkgl3rm8ba5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.likezap",
+            "certificate_hash": "6527a66136bb46f3cc4b0362840f302e05c1c483"
+          }
+        },
+        {
+          "client_id": "804901647633-fmmu349v5ivt53k1qrc6joieu7li238f.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.likezap",
+            "certificate_hash": "e9ecc7cfef67f2b5bedec75f6e4bfd6a1fd3c400"
+          }
+        },
+        {
+          "client_id": "804901647633-kp0f8bo9d6ieb2j299gifpuvsebmv8o5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.likezap",
+            "certificate_hash": "77a2ff189fdf9df76d3df43be51de57ad2e174f5"
+          }
+        },
+        {
+          "client_id": "804901647633-umqop0pm1lgm5g8ibv2ui23phnoen4v4.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.likezap",
+            "certificate_hash": "27ed3f6e972c36e59c658c4755ecffe0a067d3f7"
+          }
+        },
+        {
+          "client_id": "804901647633-fsrgi7a7q1klvt2q464e91v5aejrb1np.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSkvJIo9oGmaAX4oN_91S-xth1kvoi35o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "804901647633-fsrgi7a7q1klvt2q464e91v5aejrb1np.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "804901647633-ftj6m1gp2p3uqtdriiopcuu31v2icmvu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.zipike.ziplike"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:804901647633:android:e48307be4d1fafa549c8b0",
+        "android_client_info": {
+          "package_name": "com.zipike.ziplike"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "804901647633-84dt7jsb3c00k8maqpdhcg6spccbo7df.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.zipike.ziplike",
+            "certificate_hash": "d444213a08ea5fabc37a1b47928977f4169a2137"
+          }
+        },
+        {
+          "client_id": "804901647633-fsrgi7a7q1klvt2q464e91v5aejrb1np.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDSkvJIo9oGmaAX4oN_91S-xth1kvoi35o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "804901647633-fsrgi7a7q1klvt2q464e91v5aejrb1np.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "804901647633-ftj6m1gp2p3uqtdriiopcuu31v2icmvu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.zipike.ziplike"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

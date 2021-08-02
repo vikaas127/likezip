@@ -2,7 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ziplike/Constants/constants.dart';
-import 'package:ziplike/phn_login.dart';
+import '../Home.dart';
+import 'phn_login.dart';
 
 class activity_login extends StatefulWidget{
   @override
@@ -27,10 +28,14 @@ class activity_login_state extends State<activity_login>{
 
         padding: const EdgeInsets.all(8.0),
         child: InkWell(onTap: (){
-          Navigator.push(
+          Navigator.pushAndRemoveUntil(
+              context,
+              MaterialPageRoute(builder: (context) => Home()),
+                  (route) => false);
+        /*  Navigator.push(
             context,
             MaterialPageRoute(builder: (_) => phn_login()),
-          );
+          );*/
         },
           child: Container(height: 80,
             width:MediaQuery.of(context).size.width ,
