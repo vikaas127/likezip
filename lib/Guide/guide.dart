@@ -24,7 +24,7 @@ class guide_state extends State<guide>{
             showDialog(
               context: context,
               builder: (BuildContext dialogContext) {
-                return SearchDialog(title: 'Title ', content: 'Dialog content');
+                return SearchDialog(title: 'Title ', );
               },
             );
           },

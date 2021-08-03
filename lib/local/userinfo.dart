@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:ziplike/Constants/constants.dart';
 
-class SearchDialog extends StatelessWidget {
+class UserInfoDialog extends StatelessWidget {
   final String title;
 
   final List<Widget> actions;
 
-  SearchDialog({
+  UserInfoDialog({
     this.title,
 
     this.actions = const [],
@@ -28,18 +28,34 @@ class SearchDialog extends StatelessWidget {
 
             Container(
               child: TextFormField(
-              //  controller: _textEditConEmail,
-              //  focusNode: _passwordEmail,
+                //  controller: _textEditConEmail,
+                //  focusNode: _passwordEmail,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
-               // validator: _validateEmail,
+                // validator: _validateEmail,
                 onFieldSubmitted: (String value) {
-                 // FocusScope.of(context).requestFocus(_passwordFocus);
+                  // FocusScope.of(context).requestFocus(_passwordFocus);
                 },
                 decoration: InputDecoration(
-                    labelText: ' Enter Email/ Phone Number',
-                    //prefixIcon: Icon(Icons.email),
-                  ),
+                  labelText: ' Enter Email/ Phone Number',
+                  //prefixIcon: Icon(Icons.email),
+                ),
+              ),
+            ),
+            Container(
+              child: TextFormField(
+                //  controller: _textEditConEmail,
+                //  focusNode: _passwordEmail,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                // validator: _validateEmail,
+                onFieldSubmitted: (String value) {
+                  // FocusScope.of(context).requestFocus(_passwordFocus);
+                },
+                decoration: InputDecoration(
+                  labelText: ' Enter Email/ Phone Number',
+                  //prefixIcon: Icon(Icons.email),
+                ),
               ),
             ),
             SizedBox(height: 20),

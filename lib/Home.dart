@@ -3,6 +3,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:ziplike/Constants/constants.dart';
 
+import 'Chat/chat_Particularuser.dart';
+import 'Chat/userdetail.dart';
 import 'Guide/guide.dart';
 import 'Invite Contacts/invite_contact.dart';
 import 'Search.dart';
@@ -137,7 +139,7 @@ class _HomeState extends State<Home> {
               showDialog(
                 context: context,
                 builder: (BuildContext dialogContext) {
-                  return SearchDialog(title: 'Find Friends ', content: 'Dialog content');
+                  return SearchDialog(title: 'Find Friends ',);
                 },
               );
             },
@@ -156,13 +158,26 @@ class _HomeState extends State<Home> {
               shape:  BeveledRectangleBorder(
               borderRadius: BorderRadius.circular(6.0),
               ),
-              child: ListTile(leading: Container(height: 50,width: 50,
-                  child: Image.asset('assets/profile.webp')),title: Text("jyoti arya",style:Constants().style_white16 ,),trailing: Icon(Icons.more_vert,color:Colors.purpleAccent),)),
+              child: ListTile(onTap: (){
+                Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => Chatgruop()));
+              },
+                leading: Container(height: 50,width: 50,
+                  child: Image.asset('assets/profile.webp')),title: Text("jyoti arya",style:Constants().style_white16 ,),
+                trailing: IconButton(onPressed:(){
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext dialogContext) {
+                      return UserdetailDialog(title: 'Title ', );
+                    },
+                  );
+                },icon:Icon(Icons.more_vert,color:Colors.purpleAccent,)),)),
         );
 
       }),
       InkWell(onTap: (){  Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => invite_contacts()));},
+          builder: (context) => invite_contacts()));
+      },
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 18.0,vertical: 10),
           child: Container(
@@ -185,7 +200,8 @@ class _HomeState extends State<Home> {
                   ),
           ),
         ),
-      )],)
+      )
+        ],)
     );
   }
 
