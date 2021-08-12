@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -13,17 +14,14 @@ import 'package:intl/intl.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ziplike/Loading.dart';
+import 'package:ziplike/Model/Message.dart';
+import 'package:ziplike/Model/User.dart';
 import '../Home.dart';
-
-
 class Chatgruop extends StatelessWidget {
-  static const routeName = '/Chatgruop-page-screen';
- // final List< ChatGruoplist.Memberlist> chatData;
-  final String chatId;
-  final String chatAvatar;
-  final String chatName;
-  final String chatTotalM;
-  Chatgruop({Key key,  this.chatId, this.chatAvatar, this.chatName, this.chatTotalM,}) : super(key: key);
+
+  final User user;
+
+  Chatgruop({Key key,  this.user, }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -46,37 +44,28 @@ class Chatgruop extends StatelessWidget {
             Navigator.pop(context);
           },
         ),
-        title: Text("Jyoti"),),
+        title: Text("${user.name}"),),
 
 
       body: ChatgruopScreen(
-        chatgName:chatName ,
-        chatTotalM:chatTotalM ,
-        chatid: chatId,
-        chatAvtr: chatAvatar,
+        user:user ,
+
       ),
     );
   }
 }
 class ChatgruopScreen extends StatefulWidget {
-  final String chatid;
-  final String chatAvtr;
-  final String chatgName;
-  final String chatTotalM;
-  ChatgruopScreen({Key key, this.chatid, this.chatAvtr,this.chatgName, this.chatTotalM}) : super(key: key);
+  final User user;
+
+  ChatgruopScreen({Key key, this.user, }) : super(key: key);
 
   @override
-  State createState() => ChatgrpScreenState(chatID: chatid, chatAvatar: chatAvtr,chatName:chatgName ,chatTotalM:chatTotalM );
+  State createState() => ChatgrpScreenState(userdata: user );
 }
 class ChatgrpScreenState extends State<ChatgruopScreen> {
-  ChatgrpScreenState({Key key,  this.chatID,  this.chatAvatar, this.chatName,  this.chatTotalM});
-  String chatName;
-  String chatTotalM;
-  String chatID;
-  String chatAvatar;
-  String id;
-
-  List<QueryDocumentSnapshot> listMessage = new List.from([]);
+  ChatgrpScreenState({Key key,  this.userdata});
+  User userdata;
+  List<Message> listMessage = new List.from([]);
   int _limit = 20;
   int _limitIncrement = 20;
   String groupChatId = "";
@@ -86,7 +75,7 @@ class ChatgrpScreenState extends State<ChatgruopScreen> {
   bool isLoading = false;
   bool isShowSticker = false;
   String imageUrl = "";
-
+   DatabaseReference mRootRef;
   final TextEditingController textEditingController = TextEditingController();
   final ScrollController listScrollController = ScrollController();
   final FocusNode focusNode = FocusNode();
@@ -101,20 +90,23 @@ class ChatgrpScreenState extends State<ChatgruopScreen> {
       });
     }
   }
-Color primaryColor =Colors.grey;
+Color primaryColor =Colors.white;
   Color greyColor =Colors.grey;
   Color greyColor2 =Colors.grey;
   Color colorAccent =Colors.grey;
-
   Color colorPrimaryDark =Colors.grey;
-
+  String uid;
+  String push_id;
   String person_placeholder ='assets/personfigma.png';
   @override
   void initState() {
     super.initState();
+    uid="2w3jbz9DMFQsqhJRoPWiwqTPSUh1";
+    // uid = FirebaseAuth.instance.currentUser.uid;
     focusNode.addListener(onFocusChange);
     listScrollController.addListener(_scrollListener);
-    readLocal();
+
+   // readLocal();
   }
   void onFocusChange() {
     if (focusNode.hasFocus) {
@@ -124,39 +116,189 @@ Color primaryColor =Colors.grey;
       });
     }
   }
+ /*  void loadMessage() {
+   // Log.d("loadmessage", "load");
+
+    //path of Database
+    DatabaseReference messageRef = mRootRef.reference().child("message").child(uid).child(userdata.id);
+
+
+    mRootRef.child("message").child(uid).child(userdata.id).limitToFirst(1)
+        .addListenerForSingleValueEvent(new ValueEventListener() {
+    @Override
+    public void onDataChange(@NonNull DataSnapshot snapshot) {
+
+    if (!snapshot.exists()) {
+
+    Map messageMap = new HashMap();
+    messageMap.put("message", "EMPTY");
+    messageMap.put("seen", false);
+    messageMap.put("type", "text");
+    messageMap.put("timestamp", ServerValue.TIMESTAMP);
+    messageMap.put("from", currentUserId);
+    messageMap.put("url", imageMessageUrl);
+    messageMap.put("voice", audioMessageUrl);
+    mRootRef.child("message").child(currentUserId).child(mChatUser).push().setValue(messageMap);
+    }
+
+    }
+
+
+    @Override
+    public void onCancelled(@NonNull DatabaseError error) {
+
+    }
+    });
+    //handle variable message ref
+    messageRef.addChildEventListener(
+        new ChildEventListener() {
+    String sender_key;
+
+    @Override
+    public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+    Message message = dataSnapshot.getValue(Message.class);
+
+    //use variable for test
+    Log.d("frommessage", "onChildAdded:" + dataSnapshot);
+    String key = dataSnapshot.getKey();
+    Log.d("singlemessagekey", key);
+    Log.d("frommessage", message.getMessage());
+    Log.d("frommessage", message.getUrl());
+    Log.d("frommessage", message.getVoice() + "");
+    itemPos++;
+    if (itemPos == 1) {
+    mLastkey = dataSnapshot.getKey();
+    mPrevKey = dataSnapshot.getKey();
+    }
+    messageList.add(message);
+
+    messageAdapter.notifyDataSetChanged();
+    mMessageList.smoothScrollToPosition(messageList.size() - 1);
+
+//                        final Message message1 = message;
+//                        new Handler().postDelayed(new Runnable() {
+//                            @Override
+//                            public void run() {
+//                                if(!message1.getVoice().equals("") && System.currentTimeMillis()-message1.getTimestamp() < 60000){
+//                                    MessageAdapter.ViewHolder viewHolder = (MessageAdapter.ViewHolder)mMessageList.findViewHolderForAdapterPosition(messageAdapter.getItemCount()-1);
+//                                    if(viewHolder != null) {
+//                                        new SetAudioTask(viewHolder.inVoicePlayerView, message1.getVoice()).execute();
+//                                    }
+//                                    else{
+//                                        Toast.makeText(ChatActivity.this, "Could not autoplay!", Toast.LENGTH_SHORT).show();
+//                                    }
+//                                }
+//                            }
+//                        }, 1000);
+
+    // mSwipeRefreshLayout.setRefreshing(false);
+
+    }
+
+    @Override
+    public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+    }
+
+    @Override
+    public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+    }
+
+    @Override
+    public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String s) {
+
+    }
+
+    @Override
+    public void onCancelled(@NonNull DatabaseError databaseError) {
+
+    }
+    }
+    );
+//        Log.d("customadapterm",messageList.get(0).getMessage());
+
+  }
+
+   void sendMessage() {
+    final String message = msg_enter.getText().toString();
+    if (!TextUtils.isEmpty(message) || !imageMessageUrl.equals("") || !audioMessageUrl.equals("")) {
+     // Log.d("Click", "Entered");
+      String current_user_ref = "message/" + currentUserId + "/" + mChatUser;
+      String chat_user_ref = "message/" + mChatUser + "/" + currentUserId;
+
+    //  Log.d("messagesize", String.valueOf(messageList.size()));
+
+
+      // Message single_message = new Message(message, "text", false, 0);
+
+      Map messageMap = new Map();
+      messageMap.put("message", message);
+      messageMap.put("seen", false);
+      messageMap.put("type", "text");
+      messageMap.put("timestamp", ServerValue.TIMESTAMP);
+      messageMap.put("from", currentUserId);
+      messageMap.put("url", imageMessageUrl);
+      messageMap.put("voice", audioMessageUrl);
+
+      Map messageUserMap = new HashMap();
+      messageUserMap.put(current_user_ref + "/" + push_id, messageMap);
+      messageUserMap.put(chat_user_ref + "/" + push_id, messageMap);
+      msg_enter.setText("");
+
+      mRootRef.updateChildren(messageUserMap, new DatabaseReference.CompletionListener() {
+      @Override
+      public void onComplete(@Nullable DatabaseError databaseError, @NonNull DatabaseReference databaseReference) {
+      FirebaseDatabase.getInstance().getReference("users").child(currentUserId).child("name").addListenerForSingleValueEvent(new ValueEventListener() {
+      @Override
+      public void onDataChange(@NonNull DataSnapshot snapshot) {
+      if (snapshot.exists()) {
+      String name = snapshot.getValue(String.class);
+      DatabaseReference ref = FirebaseDatabase.getInstance().getReference("users").child(mChatUser).child("notifications");
+      HashMap<String, String> notificationMap = new HashMap<>();
+      notificationMap.put("userId", currentUserId);
+      notificationMap.put("name", name);
+      if (message.equals("")) {
+      notificationMap.put("message", "Audio message");
+      notificationMap.put("audioUrl", audioMessageUrl);
+      } else {
+      notificationMap.put("message", message);
+      notificationMap.put("audioUrl", "");
+      }
+      ref.push().setValue(notificationMap);
+      }
+      }
+
+      @Override
+      public void onCancelled(@NonNull DatabaseError error) {
+
+      }
+      });
+
+      }
+      });
+
+    }
+  }
   readLocal() async {
     prefs = await SharedPreferences.getInstance();
-    id = prefs?.getString('id') ?? '';
+   // id = prefs?.getString('id') ?? '';
     nickname = prefs?.getString('nickname') ?? '';
     aboutMe = prefs?.getString('aboutMe') ?? '';
     photoUrl = prefs?.getString('photoUrl') ?? '';
     prefs = await SharedPreferences.getInstance();
-    id = prefs?.getString('id') ?? '';
+   /* id = prefs?.getString('id') ?? '';
     if (id.hashCode <= chatID.hashCode) {
       groupChatId = '$id-$chatID';
     } else {
       groupChatId = '$chatID-$id';
-    }
+    }*/
 
     FirebaseFirestore.instance.collection('users').doc(id).update({'chattingWith': chatID});
 
     setState(() {});
-  }
-  Future getImage() async {
-    ImagePicker imagePicker = ImagePicker();
-    PickedFile pickedFile;
+  }*/
 
-    pickedFile = await imagePicker.getImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      imageFile = File(pickedFile.path);
-      if (imageFile != null) {
-        setState(() {
-          isLoading = true;
-        });
-        uploadFile();
-      }
-    }
-  }
   Future getCamera() async {
     ImagePicker imagePicker = ImagePicker();
     PickedFile pickedFile;
@@ -172,31 +314,12 @@ Color primaryColor =Colors.grey;
       }
     }
   }
-  Future getvideo() async {
-    ImagePicker imagePicker = ImagePicker();
-    PickedFile pickedFile;
 
-    pickedFile = await imagePicker.getVideo(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      imageFile = File(pickedFile.path);
-      if (imageFile != null) {
-        setState(() {
-          isLoading = true;
-        });
-        uploadFile();
-      }
-    }
-  }
-  void getSticker() {
-    // Hide keyboard when sticker appear
-    focusNode.unfocus();
-    setState(() {
-      isShowSticker = !isShowSticker;
-    });
-  }
   Future uploadFile() async {
+    DatabaseReference user_message_push = mRootRef.child("message").child(uid).child(userdata.id).push();
+    push_id = user_message_push.key;
     String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-    Reference reference = FirebaseStorage.instance.ref().child(fileName);
+    Reference reference = FirebaseStorage.instance.ref().child(uid).child(push_id);
     UploadTask uploadTask = reference.putFile(imageFile);
 
     try {
@@ -204,7 +327,7 @@ Color primaryColor =Colors.grey;
       imageUrl = await snapshot.ref.getDownloadURL();
       setState(() {
         isLoading = false;
-        onSendMessage(imageUrl, 1);
+        onSendMessage('','text',imageUrl,'');
       });
     } on FirebaseException catch (e) {
       setState(() {
@@ -213,35 +336,138 @@ Color primaryColor =Colors.grey;
       Fluttertoast.showToast(msg: e.message ?? e.toString());
     }
   }
-  void onSendMessage(String content, int type) {
+  void onSendMessage(String content, String type, String image,String voice) {
     // type: 0 = text, 1 = image, 2 = sticker
     if (content.trim() != '') {
       textEditingController.clear();
 
-      var documentReference = FirebaseFirestore.instance
-          .collection('messages')
-          .doc(chatID)
-          .collection(chatID)
-          .doc(DateTime.now().millisecondsSinceEpoch.toString());
+      var documentReference = FirebaseDatabase.instance.reference().child('message').child(uid).child('${userdata.id}').push().set(
 
-      FirebaseFirestore.instance.runTransaction((transaction) async {
-        transaction.set(
-          documentReference,
-          {
-            'idFrom': id,
-            'idTo': chatID,
-            'timestamp': DateTime.now().millisecondsSinceEpoch.toString(),
-            'content': content,
-            'type': type
-          },
-        );
-      });
+
+        {'url':image.toString()??null,
+          'voice':'',
+          'seen':false,
+          'from': uid,
+          'timestamp': DateTime.now().millisecondsSinceEpoch,
+          'message': content,
+          'type': type
+        },
+
+      );
+
+       
+
+
+
       listScrollController.animateTo(0.0, duration: Duration(milliseconds: 300), curve: Curves.easeOut);
-    } else {
+    }
+    else {
       Fluttertoast.showToast(msg: 'Nothing to send', backgroundColor: Colors.black, textColor: Colors.red);
     }
   }
-  Widget buildItem(int index, DocumentSnapshot document) {
+  bool isLastMessageLeft(int index) {
+    if ((index > 0 && listMessage[index - 1].from == userdata.id) || index == 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+  bool isLastMessageRight(int index) {
+   if ((index > 0 && listMessage[index - 1].from != userdata.id) || index == 0) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+   void startRecording() {
+    /*if (recognizer != null)
+      recognizer.stop();
+    try {
+      mRecorder.prepare();
+      mRecorder.start();
+      recording = true;
+      Toast.makeText(this, "Recording..!", Toast.LENGTH_SHORT).show();
+
+    } catch (Exception e) {
+
+    Log.e(LOG_TAG, "prepare() failed");
+    }
+*/
+//        mRecorder.start();
+
+
+  }
+   bool flagchat=false;
+  //check if mic is available or not
+    validateMicAvailability() {
+    /*oolean available = true;
+    AudioRecord recorder =
+    new AudioRecord(MediaRecorder.AudioSource.MIC, 44100,
+        AudioFormat.CHANNEL_IN_MONO,
+        AudioFormat.ENCODING_DEFAULT, 44100);
+    try {
+      if (recorder.getRecordingState() != AudioRecord.RECORDSTATE_STOPPED) {
+        available = false;
+
+      }
+      recorder.stop();
+    } finally {
+      recorder.release();
+      recorder = null;
+      available = true;
+    }
+
+    return available;*/
+  }
+   void stopRecording() {
+  /*  if (autoStopHandler != null && autoStopRunnable != null)
+      autoStopHandler.removeCallbacks(autoStopRunnable);
+
+    if (mRecorder != null) {
+      try {
+        mRecorder.stop();
+        isDispaly = true;
+        recording = false;
+
+        new Handler().postDelayed(new Runnable() {
+        @Override
+        public void run() {
+        if (recognizer != null)
+        switchSearch(KWS_SEARCH);
+        }
+        }, 1000);
+
+//                uploadAudio();
+      } catch (Exception e) {
+    e.printStackTrace();
+    }
+    Toast.makeText(this, "Stopped..!", Toast.LENGTH_SHORT).show();
+    }*/
+  }
+   void uploadAudio() async {
+   // Toast.makeText(this, "sending..", Toast.LENGTH_SHORT).show();
+
+    DatabaseReference user_message_push = mRootRef.child("message").child(uid).child(userdata.id.toString()).push();
+    push_id = user_message_push.key;
+
+    Reference reference = FirebaseStorage.instance.ref().child(uid).child(push_id);
+    UploadTask uploadTask = reference.putFile(imageFile);
+
+    try {
+      TaskSnapshot snapshot = await uploadTask;
+      imageUrl = await snapshot.ref.getDownloadURL();
+      setState(() {
+        isLoading = false;
+        onSendMessage('','text',imageUrl,'');
+      });
+    } on FirebaseException catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+      Fluttertoast.showToast(msg: e.message ?? e.toString());
+    }
+  }
+/*  Widget buildItem(int index, DocumentSnapshot document) {
     if (document != null) {
       if (document.get('idFrom') == id) {
         // Right (my message)
@@ -263,7 +489,8 @@ Color primaryColor =Colors.grey;
               padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
 
               decoration: BoxDecoration(color: Colors.grey[100], borderRadius: BorderRadius.circular(10.0)),
-              margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
+              margin: EdgeInsets.only(
+                  bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
             ):Container(),
 
             isLastMessageLeft(index)
@@ -423,33 +650,7 @@ Color primaryColor =Colors.grey;
     } else {
       return SizedBox.shrink();
     }
-  }
-  bool isLastMessageLeft(int index) {
-    if ((index > 0 && listMessage[index - 1].get('idFrom') == id) || index == 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-  bool isLastMessageRight(int index) {
-    if ((index > 0 && listMessage[index - 1].get('idFrom') != id) || index == 0) {
-      return true;
-    } else {
-      return false;
-    }
-  }
-  Future<bool> onBackPress() {
-    if (isShowSticker) {
-      setState(() {
-        isShowSticker = false;
-      });
-    } else {
-      FirebaseFirestore.instance.collection('users').doc(id).update({'chattingWith': null});
-      Navigator.pop(context);
-    }
-
-    return Future.value(false);
-  }
+  }*/
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
@@ -463,7 +664,7 @@ Color primaryColor =Colors.grey;
               buildListMessage(),
 
               // Sticker
-              isShowSticker ? buildSticker() : Container(),
+
 
               // Input content
               buildInput(),
@@ -474,117 +675,7 @@ Color primaryColor =Colors.grey;
           buildLoading()
         ],
       ),
-      onWillPop: onBackPress,
-    );
-  }
-  Widget buildSticker() {
-    return Expanded(
-      child: Container(
-        child: Column(
-          children: <Widget>[
-            Row(
-              children: <Widget>[
-                TextButton(
-                  onPressed: () => onSendMessage('mimi1', 2),
-                  child: Image.asset(
-                    'images/mimi1.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi2', 2),
-                  child: Image.asset(
-                    'images/mimi2.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi3', 2),
-                  child: Image.asset(
-                    'images/mimi3.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              ],
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            ),
-            Row(
-              children: <Widget>[
-                TextButton(
-                  onPressed: () => onSendMessage('mimi4', 2),
-                  child: Image.asset(
-                    'images/mimi4.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi5', 2),
-                  child: Image.asset(
-                    'images/mimi5.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi6', 2),
-                  child: Image.asset(
-                    'images/mimi6.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              ],
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            ),
-            Row(
-              children: <Widget>[
-                TextButton(
-                  onPressed: () => onSendMessage('mimi7', 2),
-                  child: Image.asset(
-                    'images/mimi7.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi8', 2),
-                  child: Image.asset(
-                    'images/mimi8.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                ),
-                TextButton(
-                  onPressed: () => onSendMessage('mimi9', 2),
-                  child: Image.asset(
-                    'images/mimi9.gif',
-                    width: 50.0,
-                    height: 50.0,
-                    fit: BoxFit.cover,
-                  ),
-                )
-              ],
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            )
-          ],
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        ),
-        decoration: BoxDecoration(border: Border(top: BorderSide(color: greyColor2, width: 0.5)), color: Colors.white),
-        padding: EdgeInsets.all(5.0),
-        height: 180.0,
-      ),
+
     );
   }
   Widget buildLoading() {
@@ -595,73 +686,57 @@ Color primaryColor =Colors.grey;
   Widget buildInput() {
     return Container(
 
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: <Widget>[
-              // Button send image
-
-              IconButton(
-                icon: Icon(Icons.mic,color: Colors.white,),
-                onPressed: getSticker,
-                color: primaryColor,
-              ),
-
-              // Edit text
-              Flexible(
-                child: Container(
-
-                ),
-              ),
-
-              // Button send message
-
-            ],
+          IconButton(
+            icon: Icon(Icons.add,color: Colors.black,),
+            onPressed: getCamera,
+            color: primaryColor,
           ),
-          Row(
-            children: [
-              Flexible(
-                child: Container(
-                  height: 44,
-                  padding: EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                      color: Colors.white, borderRadius: BorderRadius.circular(20)),
-                  child: Center(
-                    child: TextField(
-                      onSubmitted: (value) {
-                        onSendMessage(textEditingController.text, 0);
-                      },
-                      style: TextStyle(color: primaryColor, fontSize: 15.0),
-                      controller: textEditingController,
+          Flexible(
+            child: Container(
+              height: 44,
+              padding: EdgeInsets.symmetric(horizontal: 10),
+              decoration: BoxDecoration(
+                  color: Colors.white, borderRadius: BorderRadius.circular(20)),
+              child: Center(
+                child: TextField(
+                  onSubmitted: (value) {
+                    onSendMessage(textEditingController.text, 'text','','');
+                  },
+                  style: TextStyle(color: Colors.black, fontSize: 15.0),
+                  controller: textEditingController,
 
-                      decoration: InputDecoration.collapsed(
-                        hintText: 'Type your message...',
-                        hintStyle: TextStyle(color: greyColor),
-                      ),
-                      focusNode: focusNode,
-                    ),
+onEditingComplete: (){  flagchat=false;},
+onTap: (){
+         flagchat=true;
+    },
+                  decoration: InputDecoration.collapsed(
+
+                    hintText: 'Say Hello Zap...',
+                    hintStyle: TextStyle(color: greyColor),
                   ),
+                  focusNode: focusNode,
                 ),
               ),
-              IconButton(
-                icon: Icon(Icons.send,color: Colors.white,),
-                onPressed: () => onSendMessage(textEditingController.text, 0),
-                color: primaryColor,
-              ),
-            ],
+            ),
+          ),
+       flagchat==true  ? IconButton(
+            icon: Icon(Icons.send,color: Colors.black,),
+            onPressed: () => onSendMessage(textEditingController.text, 'text','',''),
+            color: primaryColor,
+          ):  IconButton(
+            icon: Icon(Icons.mic,color: Colors.black,),
+            onPressed: () => onSendMessage(textEditingController.text, 'text','',''),
+            color: primaryColor,
           ),
         ],
       ),
       width: double.infinity,
-      height: 100.0,
+      height: 70.0,
 
       decoration: new BoxDecoration(
-          gradient: new LinearGradient(
-              colors: [
-                colorAccent,
-                colorPrimaryDark,
-              ]
-          ),
+        color: Colors.white,
           boxShadow: [
             new BoxShadow(
               // color: Colors.grey[500],
@@ -672,24 +747,284 @@ Color primaryColor =Colors.grey;
       ),
     );
   }
+  Widget buildItem(int index, Message document) {
 
+    if (document != null) {
+      if (document.from == uid) {
+        // Right (my message)
+        return Row(
+          children: <Widget>[
+            document.message != ''
+            // Text
+                ? Container(
+
+              width: MediaQuery.of(context).size.width*.50,
+              child: Expanded(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      document.message, style: TextStyle(color: primaryColor,fontSize: 18,fontWeight: FontWeight.bold),),
+                  ],
+                ),
+              ),
+              padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+
+              decoration: BoxDecoration(color: Colors.deepPurpleAccent, borderRadius: BorderRadius.circular(10.0)),
+              margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
+            )
+                : document.url != ''
+            // Image
+                ? Container(
+              child: OutlinedButton(
+                child: Material(
+                  child: Image.network(
+                    document.url,
+                    loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return Container(
+                        decoration: BoxDecoration(
+                          color: greyColor2,
+                          borderRadius: BorderRadius.all(
+                            Radius.circular(8.0),
+                          ),
+                        ),
+                        width: 200.0,
+                        height: 200.0,
+                        child: Center(
+                          child: CircularProgressIndicator(
+                            color: primaryColor,
+                            value: loadingProgress.expectedTotalBytes != null &&
+                                loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes
+                                : null,
+                          ),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, object, stackTrace) {
+                      return Material(
+                        child: Image.asset(
+                          'images/img_not_available.jpeg',
+                          width: 200.0,
+                          height: 200.0,
+                          fit: BoxFit.cover,
+                        ),
+                        borderRadius: BorderRadius.all(
+                          Radius.circular(8.0),
+                        ),
+                        clipBehavior: Clip.hardEdge,
+                      );
+                    },
+                    width: 200.0,
+                    height: 200.0,
+                    fit: BoxFit.cover,
+                  ),
+                  borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                  clipBehavior: Clip.hardEdge,
+                ),
+                onPressed: () {
+
+                },
+                style: ButtonStyle(padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.all(0))),
+              ),
+              margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
+            )
+            // Sticker
+                : Container(
+              child: Image.asset(
+                'images/${document.voice}',
+                width: 100.0,
+                height: 100.0,
+                fit: BoxFit.cover,
+              ),
+              margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
+            ),
+
+          ],
+          mainAxisAlignment: MainAxisAlignment.end,
+        );
+      }
+      else {
+        // Left (peer message)
+        return Container(
+          child: Column(
+            children: <Widget>[
+              Row(
+                children: <Widget>[
+                  isLastMessageLeft(index)
+                      ? Material(
+                    child: Image.network(
+                      userdata.photourl,
+                      loadingBuilder: (BuildContext context, Widget child, ImageChunkEvent loadingProgress) {
+                        if (loadingProgress == null) return child;
+                        return Center(
+                          child: CircularProgressIndicator(
+                            color: primaryColor,
+                            value: loadingProgress.expectedTotalBytes != null &&
+                                loadingProgress.expectedTotalBytes != null
+                                ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes
+                                : null,
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, object, stackTrace) {
+                        return Container(
+                          width: 35,
+                          height: 35,
+                          //BoxDecoration Widget
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              width: 3,
+                              color: colorPrimaryDark,
+                            ), //Border.all
+                            borderRadius: BorderRadius.circular(10),
+                          ), //BoxDecoration
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(10),
+                            child: CachedNetworkImage(
+                              errorWidget: (context, _, error) =>
+                                  Image.asset(person_placeholder),
+                              placeholder: (context, _) =>
+                                  Image.asset(person_placeholder),
+                              imageUrl: userdata.photourl,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+
+                        );
+                      },
+                      width: 35,
+                      height: 35,
+                      fit: BoxFit.cover,
+                    ),
+                    borderRadius: BorderRadius.all(
+                      Radius.circular(10.0),
+                    ),
+                    clipBehavior: Clip.hardEdge,
+                  )
+                      : Container(width: 35.0),
+                  document.type == 'text'
+                      ? Container(
+                    child: Text(
+                      document.message,
+                      style: TextStyle(color: Colors.white,fontWeight: FontWeight.bold,fontSize: 18),
+                    ),
+                    padding: EdgeInsets.fromLTRB(15.0, 10.0, 15.0, 10.0),
+                    width: 150.0,
+                    decoration: BoxDecoration(color: Color(0xFF272A36), borderRadius: BorderRadius.circular(8.0)),
+                    margin: EdgeInsets.only(left: 10.0),
+                  )
+                      : document.type == 'text'
+                      ? Container(
+                    child: TextButton(
+                      child: Material(
+                        child: Image.network(
+                          document.url,
+                          loadingBuilder:
+                              (BuildContext context, Widget child, ImageChunkEvent loadingProgress) {
+                            if (loadingProgress == null) return child;
+                            return Container(
+                              decoration: BoxDecoration(
+                                color: greyColor2,
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(8.0),
+                                ),
+                              ),
+                              width: 200.0,
+                              height: 200.0,
+                              child: Center(
+                                child: CircularProgressIndicator(
+                                  color: primaryColor,
+                                  value: loadingProgress.expectedTotalBytes != null &&
+                                      loadingProgress.expectedTotalBytes != null
+                                      ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes
+                                      : null,
+                                ),
+                              ),
+                            );
+                          },
+                          errorBuilder: (context, object, stackTrace) => Material(
+                            child: Image.asset(
+                              'images/img_not_available.jpeg',
+                              width: 200.0,
+                              height: 200.0,
+                              fit: BoxFit.cover,
+                            ),
+                            borderRadius: BorderRadius.all(
+                              Radius.circular(8.0),
+                            ),
+                            clipBehavior: Clip.hardEdge,
+                          ),
+                          width: 200.0,
+                          height: 200.0,
+                          fit: BoxFit.cover,
+                        ),
+                        borderRadius: BorderRadius.all(Radius.circular(8.0)),
+                        clipBehavior: Clip.hardEdge,
+                      ),
+                      onPressed: () {
+
+                      },
+                      style: ButtonStyle(padding: MaterialStateProperty.all<EdgeInsets>(EdgeInsets.all(0))),
+                    ),
+                    margin: EdgeInsets.only(left: 10.0),
+                  )
+                      : Container(
+                    child: Image.asset('images/${document.voice}',
+                      width: 100.0,
+                      height: 100.0,
+                      fit: BoxFit.cover,
+                    ),
+                    margin: EdgeInsets.only(bottom: isLastMessageRight(index) ? 20.0 : 10.0, right: 10.0),
+                  ),
+                ],
+              ),
+
+              // Time
+              isLastMessageLeft(index)
+                  ? Container(
+                child: Text(
+                  DateFormat('dd MMM kk:mm').format(DateTime.fromMillisecondsSinceEpoch(document.timestamp)),
+                  style: TextStyle(color: greyColor, fontSize: 12.0, fontStyle: FontStyle.italic),
+                ),
+                margin: EdgeInsets.only(left: 50.0, top: 5.0, bottom: 5.0),
+              )
+                  : Container()
+            ],
+            crossAxisAlignment: CrossAxisAlignment.start,
+          ),
+          margin: EdgeInsets.only(bottom: 10.0),
+        );
+      }
+    } else {
+      return SizedBox.shrink();
+    }
+  }
   Widget buildListMessage() {
     return Flexible(
 
-      child: groupChatId.isNotEmpty
-          ? StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('messages').doc('$chatID').collection('$chatID').
-        orderBy('timestamp', descending: true)
-            .limit(_limit)
-            .snapshots(),
-        builder: (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+      child: userdata.id.isNotEmpty
+          ? StreamBuilder<DataSnapshot>(
+        stream: FirebaseDatabase.instance.reference().child("message").child(uid).child(userdata.id).once().asStream(),
+        builder: (BuildContext context, AsyncSnapshot<DataSnapshot> snapshot) {
           if (snapshot.hasData) {
-            listMessage.addAll(snapshot.data.docs);
+            Map<dynamic, dynamic> values = snapshot.data.value;
+            values.forEach((key,values) {
+              Map<Object,Object> _values =values;
+              print(values.toString());
+              listMessage.add(Message.fromJson(_values));
+              //  _userlist.add(User.User.fromJson(_values));
+            });
+            print('vkaaaaaaaaaaaaaaaaaaaaas');
+     print(listMessage.length.toString());
+
+
             return ListView.builder(
               padding: EdgeInsets.all(10.0),
-              itemBuilder: (context, index) => buildItem(index, snapshot.data?.docs[index]),
-              itemCount: snapshot.data?.docs.length,
-              reverse: true,
+              itemBuilder: (context, index) => buildItem(index, listMessage[index]),
+              itemCount: listMessage.length,
+             reverse: true,
               controller: listScrollController,
             );
           } else {

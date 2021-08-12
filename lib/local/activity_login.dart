@@ -30,7 +30,7 @@ class activity_login_state extends State<activity_login>{
         child: InkWell(onTap: (){
           Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => Home()),
+              MaterialPageRoute(builder: (context) => phn_login()),
                   (route) => false);
         /*  Navigator.push(
             context,

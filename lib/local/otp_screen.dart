@@ -2,8 +2,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 import 'package:pinput/pin_put/pin_put.dart';
+import 'package:ziplike/appperferance.dart';
 
 import '../Home.dart';
+import '../appConstant.dart';
 
 class OTPScreen extends StatefulWidget {
   final String phone;
@@ -21,14 +23,14 @@ class _OTPScreenState extends State<OTPScreen> {
     color: const Color.fromRGBO(43, 46, 66, 1),
     borderRadius: BorderRadius.circular(10.0),
     border: Border.all(
-      color: const Color.fromRGBO(126, 203, 224, 1),
+      color:Color(0xFF272A36),
     ),
   );
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldkey,
-      appBar: AppBar(
+      appBar: AppBar(backgroundColor:Color(0xFF272A36) ,
         title: Text('OTP Verification'),
       ),
       body: Column(
@@ -57,10 +59,9 @@ class _OTPScreenState extends State<OTPScreen> {
               pinAnimationType: PinAnimationType.fade,
               onSubmit: (pin) async {
                 try {
-                  await FirebaseAuth.instance
-                      .signInWithCredential(PhoneAuthProvider.credential(
-                      verificationId: _verificationCode, smsCode: pin))
-                      .then((value) async {
+                  await FirebaseAuth.instance.signInWithCredential(PhoneAuthProvider.credential(
+                      verificationId: _verificationCode, smsCode: pin)).then((value) async {
+                    AppPreferences.setBool(AppConstants.Auth_Token,true);
                     if (value.user != null) {
                       Navigator.pushAndRemoveUntil(
                           context,

@@ -1,45 +1,66 @@
 import 'package:flutter/material.dart';
 import 'package:ziplike/Constants/constants.dart';
+import 'package:ziplike/Model/User.dart';
 
 class UserdetailDialog extends StatelessWidget {
-  final String title;
+  final User user;
 
   final List<Widget> actions;
 
   UserdetailDialog({
-    this.title,
+    this.user,
 
     this.actions = const [],
   });
-
+  bool isSwitched = false;
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return StatefulBuilder(
+        builder: (context, setState) {
+      return
+        AlertDialog(
 
       actions: this.actions,
-      content: Container(height: 258,
+      content: Container(height: 310,
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Jyoti arya",
+              "${user.name}",
               style: Theme.of(context).textTheme.title,
             ),
             Text(
-              "Email: jyotiarya1298@gmail.com",
+              "Email: ${user.email}",
               style: Theme.of(context).textTheme.title,
             ),
             Text(
-              "NickName:",
+              "NickName: ${user.nickName}""",
               style: Theme.of(context).textTheme.title,
             ),
-            Text(
-              "Block this user ?",
-              style: Theme.of(context).textTheme.title,
+            Row(
+              children: [
+                Text(
+                  "Block this user ?",
+                  style: Theme.of(context).textTheme.title,
+                ),  Center(
+                  child: Switch(
+                    value: isSwitched,
+                    onChanged: (value){
+                      isSwitched=value;
+                      print(isSwitched);
+
+                    },
+                    activeTrackColor: Colors.lightGreenAccent,
+                    activeColor: Colors.green,
+                  ),
+                ),
+              ],
             ),
             Text("Friends forever"
               ,
               style: Theme.of(context).textTheme.title,
             ),
+
 
             SizedBox(height: 20),
             Row(children: [
@@ -57,6 +78,6 @@ class UserdetailDialog extends StatelessWidget {
           ],
         ),
       ),
-    );
+    );});
   }
 }

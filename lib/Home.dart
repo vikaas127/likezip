@@ -1,7 +1,13 @@
+import 'dart:convert';
+
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:share/share.dart';
 import 'package:ziplike/Constants/constants.dart';
+import 'package:ziplike/Model/User.dart' as User;
+import 'package:ziplike/youtube/screens/home_screen.dart';
 
 import 'Chat/chat_Particularuser.dart';
 import 'Chat/userdetail.dart';
@@ -9,14 +15,17 @@ import 'Guide/guide.dart';
 import 'Invite Contacts/invite_contact.dart';
 import 'Search.dart';
 
-
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
 }
 
 class _HomeState extends State<Home> {
+  final  Firebasefriendslist = FirebaseDatabase.instance;
+  final  Firebaseuserlist = FirebaseDatabase.instance;
    String uid;
+  int _limit = 20;
+  int _limitIncrement = 20;
   Widget _Drawer (){
     return  Drawer(
       child: Container(color: Color(0xFF272A36),
@@ -40,7 +49,7 @@ class _HomeState extends State<Home> {
           child: InkWell(onTap: (){
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => invite_contacts()),
+              MaterialPageRoute(builder: (_) => HomeScreen()),
             );
           },
             child: Padding(
@@ -68,10 +77,7 @@ class _HomeState extends State<Home> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 28.0),
           child: InkWell(onTap: (){
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => invite_contacts()),
-            );
+            Share.share('check out my website https://example.com', subject: 'Look what I made!');
           },
             child: Row(children: [
               Container(height: 20,width: 30,
@@ -113,6 +119,50 @@ class _HomeState extends State<Home> {
 
     );
   }
+  List<User.User> _userlist= new List();
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    listScrollController.addListener(scrollListener);
+    uid="2w3jbz9DMFQsqhJRoPWiwqTPSUh1";
+    uid = FirebaseAuth.instance.currentUser.uid;
+    Firebasefriendslist.reference().child("message").child(uid).once().then((DataSnapshot snapshot){
+    //  print(data.value);
+      Map<dynamic, dynamic> values = snapshot.value;
+     // print(values.keys.toString());
+
+      values.forEach((key,values) {
+        setState(() {
+
+          Firebaseuserlist.reference().child("users").child(key.toString()).once().then(( DataSnapshot val) {
+            Map<dynamic, dynamic> datafrnd = val.value;
+
+              setState(() {
+
+
+
+
+               _userlist.add(User.User.fromJson(datafrnd));
+
+              });
+
+
+          });
+
+
+      });});
+    });
+  }
+  final ScrollController listScrollController = ScrollController();
+  void scrollListener() {
+    if (listScrollController.offset >= listScrollController.position.maxScrollExtent &&
+        !listScrollController.position.outOfRange) {
+      setState(() {
+        _limit += _limitIncrement;
+      });
+    }
+  }
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -148,34 +198,53 @@ class _HomeState extends State<Home> {
       ),
       body:Column(
         children: [
-          ListView.builder(shrinkWrap: true,scrollDirection: Axis.vertical,
-          itemCount: 5,
-          itemBuilder: (context,index){
-        return  Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 18.0,vertical: 10),
-          child: Card(
-             color: Color(0xFF272A36),
-              shape:  BeveledRectangleBorder(
-              borderRadius: BorderRadius.circular(6.0),
-              ),
-              child: ListTile(onTap: (){
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => Chatgruop()));
-              },
-                leading: Container(height: 50,width: 50,
-                  child: Image.asset('assets/profile.webp')),title: Text("jyoti arya",style:Constants().style_white16 ,),
-                trailing: IconButton(onPressed:(){
-                  showDialog(
-                    context: context,
-                    builder: (BuildContext dialogContext) {
-                      return UserdetailDialog(title: 'Title ', );
-                    },
+          Container(
+            child: ListView.builder(
+                shrinkWrap: true,
+                scrollDirection: Axis.vertical,
+                itemCount: _userlist.length,
+                controller: listScrollController,
+                itemBuilder: (context,index){
+                  return  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 18.0,vertical: 10),
+                    child: Card(
+                        color: Color(0xFF272A36),
+                        shape:  BeveledRectangleBorder(
+                          borderRadius: BorderRadius.circular(6.0),
+                        ),
+                        child: ListTile(onTap: (){
+                          Navigator.of(context).push(MaterialPageRoute(
+                              builder: (context) => Chatgruop(user: _userlist[index],)));
+                        },
+                          leading: Container(height: 50,width: 50,
+                              child: Image.asset('assets/profile.webp')),
+                          title: Text("${_userlist[index].name}",style:Constants().style_white16 ,),
+                          trailing: IconButton(onPressed:(){
+                            showDialog(
+                              context: context,
+                              builder: (BuildContext dialogContext) {
+                                return UserdetailDialog(user: _userlist[index], );
+                              },
+                            );
+                          },icon:Icon(Icons.more_vert,color:Colors.purpleAccent,)),)),
                   );
-                },icon:Icon(Icons.more_vert,color:Colors.purpleAccent,)),)),
-        );
 
-      }),
-      InkWell(onTap: (){  Navigator.of(context).push(MaterialPageRoute(
+                })
+            /*StreamBuilder<DataSnapshot>(
+              stream:  Firebasefriendslist.reference().child("userFirends").child(uid).limitToFirst(10).asStream(),
+              builder: (BuildContext context, AsyncSnapshot<DataSnapshot> snapshot) {
+                print(snapshot.data.value.toString());
+                dynamic list= snapshot.data.value;
+                print(list.toString());
+                if(snapshot.hasData) {
+                return }
+
+                }
+
+
+            ),*/
+          ),
+          InkWell(onTap: (){  Navigator.of(context).push(MaterialPageRoute(
           builder: (context) => invite_contacts()));
       },
         child: Padding(
@@ -205,10 +274,5 @@ class _HomeState extends State<Home> {
     );
   }
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    uid = FirebaseAuth.instance.currentUser.uid;
-  }
+
 }

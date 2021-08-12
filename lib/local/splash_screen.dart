@@ -1,38 +1,65 @@
+import 'dart:async';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ziplike/Intro.dart';
+import 'package:ziplike/appperferance.dart';
+import 'package:ziplike/local/phn_login.dart';
 
+import '../Home.dart';
+import '../appConstant.dart';
 import '../main.dart';
-
-
+import 'activity_login.dart';
 class SplashPage extends StatefulWidget {
   @override
   _SplashPageState createState() => _SplashPageState();
 }
-
 class _SplashPageState extends State<SplashPage> {
-  @override
-  void initState() {
-    Future.delayed(Duration(seconds: 2), () async {
-      /*CommonDetailsProvider commonDetailsProvider =
-      Provider.of<CommonDetailsProvider>(context, listen: false);
-      await commonDetailsProvider.initPreferences();
-      commonDetailsProvider.initCamera();
-      bool isLoggedIn = commonDetailsProvider.getPreferencesInstance
-          .getBool(PreferenceConstants.IS_USER_LOGGED_IN);*/
 
-        Navigator.push(context,MaterialPageRoute(builder: (_) => Intro()));
-     //   Navigator.of(context).pushReplacementNamed(MemoryPage.routeName);
-      /* else {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => HomePage()),
-        );
-       // Navigator.of(context).pushReplacementNamed(LoginScreen.routeName);
-      }*/
-    });
+  var _visible = true;
+  startTime() async {
+    var _duration = new Duration(seconds: 3);
+    return new Timer(_duration, navigationPage);
+  }
+
+  Future<void> navigationPage() async {
+
+    Future.delayed(Duration(seconds: 2))
+        .then((value) {
+
+      AppPreferences.getBool(AppConstants.Auth_Token).then((value) {setState(() {
+        if (value == true){
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (BuildContext context) =>
+                    Home()
+            ),
+          );
+        }else {
+
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (BuildContext context) =>
+                  activity_login(),
+            ),
+          );
+
+        }
+      });
+
+
+      });});}
+  @override
+  Future<void> initState()   {
     super.initState();
+
+    setState(() {
+      _visible = !_visible;
+    });
+    startTime();
   }
 
   @override
