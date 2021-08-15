@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   _initChannel() async {
     Channel channel = await APIService.instance
-        .fetchChannel(channelId: 'UC6Dy0rQ6zDnQuHQ1EeErGUA');
+        .fetchChannel(channelId: 'UCvZ3m6gJnrxt7imtfVyxKHg');
     setState(() {
       _channel = channel;
       _controller = YoutubePlayerController(
@@ -95,13 +95,16 @@ class _HomeScreenState extends State<HomeScreen> {
   _buildVideo(Video video) {
     return GestureDetector(
       onTap: () {
-        _controller = YoutubePlayerController(
-        initialVideoId: video.id,
-        flags: YoutubePlayerFlags(
-          mute: false,
-          autoPlay: true,
-        ),
-      );
+        setState(() {
+          _controller = YoutubePlayerController(
+            initialVideoId: video.id,
+            flags: YoutubePlayerFlags(
+              mute: false,
+              autoPlay: true,
+            ),
+          );
+        });
+
 
       },
       child: Container(
@@ -154,8 +157,8 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('YouTube Channel'),
+      appBar: AppBar(backgroundColor:Color(0xFF272A36),
+        title: Text('Likezap Videos'),
       ),
       body: _channel != null
           ? NotificationListener<ScrollNotification>(
@@ -168,7 +171,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 }
                 return false;
               },
-              child: Column(
+              child: ListView(
                 children: [
                   YoutubePlayer(
                     controller: _controller,
@@ -180,14 +183,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   Container(
                     height: MediaQuery.of(context).size.height*70,
                     child: ListView.builder(
+
                       shrinkWrap: true,
                       scrollDirection: Axis.vertical,
-                      itemCount: 1 + _channel.videos.length,
+                      itemCount:  _channel.videos.length,
                       itemBuilder: (BuildContext context, int index) {
-                        if (index == 0) {
-                          return _buildProfileInfo();
-                        }
-                        Video video = _channel.videos[index - 1];
+
+                        Video video = _channel.videos[index ];
                         return _buildVideo(video);
                       },
                     ),

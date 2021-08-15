@@ -56,10 +56,12 @@ dependencies:
   google_fonts:
   share: ^2.0.4
   flutter_sound: ^8.3.9
+  in_app_purchase: ^1.0.6
+  flutter_inapp_purchase: ^5.0.2
+  assets_audio_player: ^3.0.3+3
   http:
   youtube_player_flutter:
-
-  path:
+  path: ^1.8.0
   provider:
 
 dev_dependencies:
@@ -80,6 +82,7 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
       - assets/
+      - assets/ads.png
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

@@ -1,25 +1,29 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intro_views_flutter/intro_views_flutter.dart';
 import 'local/splash_screen.dart';
-
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
 /// This is the main method of app, from here execution starts.
 void main() async
 {  WidgetsFlutterBinding.ensureInitialized();
 Firebase.initializeApp();
+if (defaultTargetPlatform == TargetPlatform.android) {
+  InAppPurchaseAndroidPlatformAddition.enablePendingPurchases();
+}
 WidgetsFlutterBinding.ensureInitialized();
 SystemChrome.setSystemUIOverlayStyle(
   const SystemUiOverlayStyle(
-    statusBarColor: Colors.blueAccent,
+    statusBarColor:Color(0xFF272A36),
   ),
 );
-  runApp(MaterialApp(
+  runApp(MaterialApp( debugShowCheckedModeBanner: false,
       theme: ThemeData(
         // Define the default brightness and colors.
         brightness: Brightness.dark,
         primaryColor: Color(0xFF272A36),
-        accentColor: Colors.cyan[600],
+        accentColor: Color(0xFF272A36),
 
         // Define the default font family.
         fontFamily: 'Georgia',

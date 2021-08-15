@@ -1,16 +1,22 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:assets_audio_player/assets_audio_player.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_sound/flutter_sound.dart';
+import 'package:flutter_sound/public/flutter_sound_recorder.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:permission_handler/permission_handler.dart';
 
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ziplike/Loading.dart';
@@ -65,16 +71,25 @@ class ChatgruopScreen extends StatefulWidget {
 class ChatgrpScreenState extends State<ChatgruopScreen> {
   ChatgrpScreenState({Key key,  this.userdata});
   User userdata;
+  FlutterSoundRecorder _myRecorder;
+  final audioPlayer = AssetsAudioPlayer();
+  String filePath;
+  bool _play = false;
+  String _recorderTxt = '00:00:00';
   List<Message> listMessage = new List.from([]);
   int _limit = 20;
   int _limitIncrement = 20;
   String groupChatId = "";
+  File mLocalFilePath;
   SharedPreferences prefs;
-
+bool start=true;
+bool stop=false;
+bool upload =false;
   File imageFile;
   bool isLoading = false;
   bool isShowSticker = false;
   String imageUrl = "";
+  String audioUrl ="";
    DatabaseReference mRootRef;
   final TextEditingController textEditingController = TextEditingController();
   final ScrollController listScrollController = ScrollController();
@@ -98,6 +113,7 @@ Color primaryColor =Colors.white;
   String uid;
   String push_id;
   String person_placeholder ='assets/personfigma.png';
+
   @override
   void initState() {
     super.initState();
@@ -105,7 +121,7 @@ Color primaryColor =Colors.white;
     // uid = FirebaseAuth.instance.currentUser.uid;
     focusNode.addListener(onFocusChange);
     listScrollController.addListener(_scrollListener);
-
+    startIt();
    // readLocal();
   }
   void onFocusChange() {
@@ -298,6 +314,102 @@ Color primaryColor =Colors.white;
 
     setState(() {});
   }*/
+  void startIt() async {
+    filePath = '/audio/temp'+".3gp";
+    _myRecorder = FlutterSoundRecorder();
+
+    await _myRecorder.openAudioSession(
+        focus: AudioFocus.requestFocusAndStopOthers,
+        category: SessionCategory.playAndRecord,
+        mode: SessionMode.modeDefault,
+        device: AudioDevice.speaker);
+    await _myRecorder.setSubscriptionDuration(Duration(milliseconds: 10));
+    await initializeDateFormatting();
+
+    await Permission.microphone.request();
+    await Permission.storage.request();
+    await Permission.manageExternalStorage.request();
+  }
+  ElevatedButton buildElevatedButton({String text, Function f,Color bakgcolor}) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        padding: EdgeInsets.all(2.0),
+        side: BorderSide(
+          color: bakgcolor,
+          width: 3.0,
+        ),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(15),
+        ),
+        primary: Colors.white,
+        elevation: 2.0,
+      ),
+      onPressed: f,
+
+      child: Container(height: 40,width: 75,
+          child: Center(child: Text(text,style: TextStyle(color: bakgcolor),))),
+    );
+  }
+
+  Future<void> record() async {
+    setState(() {
+      start=false;
+      stop=true;
+      upload=false;
+    });
+    Directory dir = Directory(filePath);
+
+
+    if (!dir.existsSync()) {
+      dir.createSync();
+    }
+    _myRecorder.openAudioSession();
+    await _myRecorder.startRecorder(
+      toFile: filePath,
+      codec: Codec.pcm16WAV,
+    );
+
+    StreamSubscription _recorderSubscription = _myRecorder.onProgress.listen((e) {
+      var date = DateTime.fromMillisecondsSinceEpoch(e.duration.inMilliseconds, isUtc: true);
+      var txt = DateFormat('mm:ss:SS', 'en_GB').format(date);
+
+      setState(() {
+        print('vkaas');
+        _recorderTxt = txt.substring(0, 8);
+      });
+    });
+    _recorderSubscription.cancel();
+  }
+
+  Future<String> stopRecord() async {
+    setState(() {
+      start=false;
+      stop=false;
+      upload=true;
+    });
+    _myRecorder.closeAudioSession();
+    return await _myRecorder.stopRecorder();
+  }
+  Future<String> uploadRecord() async {
+    setState(() {
+      start=false;
+      stop=false;
+      upload=false;
+    });
+    _myRecorder.closeAudioSession();
+    return await _myRecorder.stopRecorder();
+  }
+  Future<void> startPlaying() async {
+    audioPlayer.open(
+      Audio.file(filePath),
+      autoStart: true,
+      showNotification: true,
+    );
+  }
+
+  Future<void> stopPlaying() async {
+    audioPlayer.stop();
+  }
 
   Future getCamera() async {
     ImagePicker imagePicker = ImagePicker();
@@ -398,6 +510,7 @@ Color primaryColor =Colors.white;
 
   }
    bool flagchat=false;
+  bool mic =false;
   //check if mic is available or not
     validateMicAvailability() {
     /*oolean available = true;
@@ -451,14 +564,15 @@ Color primaryColor =Colors.white;
     push_id = user_message_push.key;
 
     Reference reference = FirebaseStorage.instance.ref().child(uid).child(push_id);
-    UploadTask uploadTask = reference.putFile(imageFile);
+
+    UploadTask uploadTask = reference.putFile(mLocalFilePath);
 
     try {
       TaskSnapshot snapshot = await uploadTask;
-      imageUrl = await snapshot.ref.getDownloadURL();
+      audioUrl = await snapshot.ref.getDownloadURL();
       setState(() {
         isLoading = false;
-        onSendMessage('','text',imageUrl,'');
+        onSendMessage('','text',audioUrl,'');
       });
     } on FirebaseException catch (e) {
       setState(() {
@@ -686,49 +800,105 @@ Color primaryColor =Colors.white;
   Widget buildInput() {
     return Container(
 
-      child: Row(
+      child: Column(
         children: [
-          IconButton(
-            icon: Icon(Icons.add,color: Colors.black,),
-            onPressed: getCamera,
-            color: primaryColor,
-          ),
-          Flexible(
-            child: Container(
-              height: 44,
-              padding: EdgeInsets.symmetric(horizontal: 10),
-              decoration: BoxDecoration(
-                  color: Colors.white, borderRadius: BorderRadius.circular(20)),
-              child: Center(
-                child: TextField(
-                  onSubmitted: (value) {
-                    onSendMessage(textEditingController.text, 'text','','');
-                  },
-                  style: TextStyle(color: Colors.black, fontSize: 15.0),
-                  controller: textEditingController,
+
+
+          Row(
+            children: [
+              IconButton(
+                icon: Icon(Icons.add,color: Colors.black,),
+                onPressed: getCamera,
+                color: primaryColor,
+              ),
+              mic==true ? Flexible(
+                child: Container(
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      (start==true && stop ==false && upload==false)?
+                      buildElevatedButton(bakgcolor: Colors.black,
+                        text: 'Start',
+                        f: record,
+                      ):  buildElevatedButton(bakgcolor: Colors.grey,
+                        text: 'Start',
+
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      (start==false && stop ==true && upload==false)?buildElevatedButton(bakgcolor: Colors.black,
+                        text: 'Stop',
+                        f: stopRecord,
+                      ):buildElevatedButton(bakgcolor: Colors.grey,
+                        text: 'Stop',
+                      ),
+                      SizedBox(
+                        width: 10,
+                      ),
+                      (start==false && stop ==false && upload==true)?buildElevatedButton(bakgcolor: Colors.black,
+                        text: 'Upload',
+                        f: uploadRecord,
+                      ):buildElevatedButton(bakgcolor: Colors.grey,
+                        text: 'Upload',
+
+                      ),
+                    ],
+                  ),
+                ),
+              ): Flexible(
+                child: Container(
+                  height: 44,
+                  padding: EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                      color: Colors.white, borderRadius: BorderRadius.circular(20)),
+                  child: Center(
+                    child: TextField(
+                      onSubmitted: (value) {
+                        onSendMessage(textEditingController.text, 'text','','');
+                      },
+                      style: TextStyle(color: Colors.black, fontSize: 15.0),
+                      controller: textEditingController,
 
 onEditingComplete: (){  flagchat=false;},
 onTap: (){
-         flagchat=true;
-    },
-                  decoration: InputDecoration.collapsed(
+                        setState(() {
+                          flagchat=true;
+                        });
 
-                    hintText: 'Say Hello Zap...',
-                    hintStyle: TextStyle(color: greyColor),
+    },
+                      decoration: InputDecoration.collapsed(
+
+                        hintText: 'Say Hello Zap...',
+                        hintStyle: TextStyle(color: greyColor),
+                      ),
+                      focusNode: focusNode,
+                    ),
                   ),
-                  focusNode: focusNode,
                 ),
               ),
-            ),
-          ),
-       flagchat==true  ? IconButton(
-            icon: Icon(Icons.send,color: Colors.black,),
-            onPressed: () => onSendMessage(textEditingController.text, 'text','',''),
-            color: primaryColor,
-          ):  IconButton(
-            icon: Icon(Icons.mic,color: Colors.black,),
-            onPressed: () => onSendMessage(textEditingController.text, 'text','',''),
-            color: primaryColor,
+           flagchat==true  ?
+           IconButton(
+                icon: Icon(Icons.send,color: Colors.black,),
+                onPressed: () {setState(() {
+                  flagchat=false;
+                });
+                  onSendMessage(textEditingController.text, 'text','','');
+                },
+                color: primaryColor,
+              ):  IconButton(
+                icon: Icon(Icons.mic,color: Colors.black,),
+                onPressed: () {setState(() {
+                  start=true;
+                  stop=false;
+                  upload=false;
+                  mic=!mic;
+  //  onSendMessage(textEditingController.text, 'text','','');
+                });},
+
+                color: primaryColor,
+              ),
+            ],
           ),
         ],
       ),
@@ -1043,4 +1213,5 @@ onTap: (){
       ),
     );
   }
+
 }

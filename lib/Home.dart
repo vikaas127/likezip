@@ -14,6 +14,7 @@ import 'Chat/userdetail.dart';
 import 'Guide/guide.dart';
 import 'Invite Contacts/invite_contact.dart';
 import 'Search.dart';
+import 'Subscription/subscription.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -23,7 +24,10 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   final  Firebasefriendslist = FirebaseDatabase.instance;
   final  Firebaseuserlist = FirebaseDatabase.instance;
-   String uid;
+   String uid="";
+   String email;
+   String phto;
+   String display;
   int _limit = 20;
   int _limitIncrement = 20;
   Widget _Drawer (){
@@ -40,9 +44,9 @@ class _HomeState extends State<Home> {
         ),
         SizedBox(height: 20,),
 
-        Text("vikaas",style: Constants().style_drawer_text,),SizedBox(height: 20,),
+        Text(display!=null?display.toString():"",style: Constants().style_drawer_text,),SizedBox(height: 20,),
 
-        Text("vikas9497@gmail.com",style: Constants().style_drawer_text,),
+        Text(email!=null?email.toString():"v",style: Constants().style_drawer_text,),
         SizedBox(height: 20,),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 18.0),
@@ -69,7 +73,8 @@ class _HomeState extends State<Home> {
               MaterialPageRoute(builder: (_) => invite_contacts()),
             );
           },
-            child: Row(children: [Container(height: 20,width: 30,
+            child: Row(children: [
+              Container(height: 20,width: 30,
                 child: Image.asset('assets/invitecontacts.webp',color: Colors.white,)),Text("Invite Contacts",style: Constants().style_drawer,)],),
           ),
         ),
@@ -92,7 +97,7 @@ class _HomeState extends State<Home> {
           child: InkWell(onTap: (){
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => invite_contacts()),
+              MaterialPageRoute(builder: (_) => subscription()),
             );
           },
             child: Row(children: [
@@ -125,8 +130,21 @@ class _HomeState extends State<Home> {
     // TODO: implement initState
     super.initState();
     listScrollController.addListener(scrollListener);
-    uid="2w3jbz9DMFQsqhJRoPWiwqTPSUh1";
-    uid = FirebaseAuth.instance.currentUser.uid;
+setState(() {
+  uid = FirebaseAuth.instance.currentUser.uid;
+});
+
+    FirebaseDatabase.instance.reference().child('users').child('$uid').once().then((DataSnapshot snapshot){
+
+      Map<dynamic, dynamic> values = snapshot.value;
+      print(values.toString());
+      email = values['email'];
+      display = values['name'];
+      phto = values['photourl'];
+    });
+    if(uid!=null) {
+
+    }
     Firebasefriendslist.reference().child("message").child(uid).once().then((DataSnapshot snapshot){
     //  print(data.value);
       Map<dynamic, dynamic> values = snapshot.value;
